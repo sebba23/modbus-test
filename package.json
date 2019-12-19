@@ -26,6 +26,8 @@
     "@ionic-native/status-bar": "^5.15.1",
     "@ionic/angular": "^4.11.1",
     "@ionic/storage": "^2.2.0",
+    "@nguniversal/common": "^8.2.6",
+    "@nguniversal/socket-engine": "^8.2.6",
     "cordova-android": "8.1.0",
     "cordova-ios": "5.0.1",
     "cordova-plugin-camera": "~4.1.0",
@@ -38,8 +40,11 @@
     "cordova-plugin-whitelist": "^1.3.4",
     "cordova-sqlite-storage": "^3.4.0",
     "core-js": "^3.3.2",
+    "emailjs-tcp-socket": "^2.0.2",
+    "net": "^1.0.2",
     "ngx-socket-io": "^3.0.1",
     "rxjs": "~6.5.3",
+    "tcp-socket": "^0.5.8",
     "zone.js": "^0.10.2"
   },
   "devDependencies": {
@@ -71,7 +76,9 @@
   "description": "An Ionic project",
   "cordova": {
     "plugins": {
-      "cordova-plugin-camera": {},
+      "cordova-plugin-camera": {
+        "ANDROID_SUPPORT_V4_VERSION": "27.+"
+      },
       "cordova-plugin-whitelist": {},
       "cordova-plugin-statusbar": {},
       "cordova-plugin-device": {},
