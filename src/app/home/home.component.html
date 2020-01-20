@@ -1,7 +1,37 @@
-<p>
+<!-- <p>
   <button (click)="connect()">Connect to device</button>
   <button (click)="connectionTest()">Test connectivity</button>
   <button (click)="sendMessage()">Send message</button>
   <button (click)="readMessage()">Read message</button>
   <button (click)="killSocket()">Close connection</button>
-</p>
+</p> -->
+<div class="dashboard-container">
+
+  <mat-card class="button-container">
+
+    <div class="inside-dashboard-container">
+
+      <button mat-raised-button (click)="connect()" style="width: 50%;">Connect</button>
+
+      <button mat-raised-button (click)="connectionTest()" style="width: 50%; margin-top: 20px;">Check Connection</button>
+      
+      <button mat-raised-button (click)="killSocket()" style="width: 50%; margin-top: 20px;">Close Connection</button>
+
+      <div class="container-sw-version" style="margin-top: 20px;">
+        <div>
+          <button mat-raised-button (click)="swVersionRequest()">Software Version</button>
+        </div>
+
+        <div>
+          <mat-card style="font-size: 0.8em; width: 190px; font-weight: bold;">SW Version: <label >{{swVersion}} </label> </mat-card>
+          <!-- *ngIf="showSwVersion" 
+          4.0 18/12/19
+        [(ngModel)]="swVersion"-->
+        </div>
+      </div>
+
+      </div>
+
+  </mat-card>
+
+</div>

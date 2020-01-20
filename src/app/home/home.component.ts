@@ -10,6 +10,9 @@ import { TCPServices } from "../socket-service";
   styleUrls: ["./home.component.scss"]
 })
 export class HomeComponent implements OnInit {
+  
+  swVersion: any;
+
   constructor(private socket: TCPServices) {}
 
   ngOnInit() {}
@@ -27,9 +30,9 @@ export class HomeComponent implements OnInit {
   connectionTest() {
     console.log("test connection");
     this.socket.testConnection();
-    this.socket.arrayBuffer2str(299);
+    // this.socket.arrayBuffer2str(299);
     // this.socket.sendPacket("192.168.1.1", 5555, 1);
-    this.socket.write();
+    // this.socket.writeToDevice();
   }
 
   sendMessage(message: any) {
@@ -38,7 +41,30 @@ export class HomeComponent implements OnInit {
 
   readMessage() {
     console.log("reading a message from the device");
-    this.socket.readDataFromBoard(1,3,1,6,16)
+    // this.socket.writeToDevice()
     // this.socket.str2arrayBuffer("23");
+  }
+
+  swVersionRequest() {
+    console.log("software version request");
+
+    //debugger;
+    if (this.socket.checkSwVersion()) {
+      this.swVersion = this.socket.getSwVersion();
+      // this.swVersion = this.socket.swVersionResponse
+      // debugger
+      // setTimeout(() => {
+      //   // this.showSwVersion = true;
+      // }, 2000);
+    } else {
+      setTimeout(() => {
+        alert("Connect to the device first");
+        // this.showSwVersion = false;
+        // this.loadingService.showLoading(false);
+      }, 1000);
+    }
+
+    // will it work?
+    // this.swVersion = this.socket.swVersionResponse
   }
 }

@@ -1,32 +1,63 @@
 import { Injectable } from "@angular/core";
-import { Http } from "@angular/http";
+import { BehaviorSubject } from "rxjs";
 
 @Injectable({
   providedIn: "root"
 })
+
 export class TCPServices {
   socket;
+  swVersionResponse: any;
+  swVersionRequest: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false)
+
   constructor() {
-    // public http: Http
     console.log("Hello TCPServices Provider");
 
     this.socket = new (<any>window).Socket();
     console.log("test socket ", this.socket);
 
-    (<any>window).ayoubsSocket = this.socket;
+    (<any>window).globalSocket = this.socket;
+
+    this.socket.onData = function(data) {
+      if (this.getSwRequestChanged) {
+        console.log('print sw version')
+        this.swVersionRequestChanged(false)
+        this.swVersionResponse = data
+        console.log('sw versione response: ', this.swVersionResponse)
+      } else {
+        console.log("#onData: " + data);
+        this.swVersionResponse = data
+      }
+    };
+
+    this.socket.onError = function(errorMessage) {
+      console.error("An error occurred talking to the socket: " + errorMessage);
+    };
+
+    this.socket.onClose = function(hasError) {
+      console.log("Socket closing: " + hasError);
+    };
 
     this.socket.open(
       "192.168.1.1",
       5555,
       function() {
         // invoked after successful opening of socket
-        console.log("connected to ", (<any>window).ayoubsSocket); //this.socket);
+        console.log("connected to ", (<any>window).globalSocket); //this.socket);
       },
       function(errorMessage) {
         // invoked after unsuccessful opening of socket
         console.log("error message ", errorMessage);
       }
     );
+  }
+
+  swVersionRequestChanged(value: boolean) {
+    this.swVersionRequest.next(value);
+  }
+
+  getSwRequestChanged() {
+    return this.swVersionRequest.getValue()
   }
 
   // Method to open a socket/connection
@@ -36,7 +67,7 @@ export class TCPServices {
       5555,
       function() {
         // invoked after successful opening of socket
-        console.log("connected to ", this.socket);
+        console.log("open method connected to ", this.socket);
       },
       function(errorMessage) {
         // invoked after unsuccessful opening of socket
@@ -49,15 +80,34 @@ export class TCPServices {
     debugger;
     if (this.socket.state == (<any>window).Socket.State.OPENED) {
       console.log("Socket is opened");
-      console.log("connection is successful");
+      setTimeout (() => { alert('Connection successful') }, 900);
     } else {
       console.log("Socked is closed");
+      setTimeout (() => { alert('Cannot connect to the device') }, 900);
     }
+  }
+
+  getSwVersion() {
+    console.log('about to send command to get sw version')
+    this.swVersionRequestChanged(true)
+    debugger
+    const swVersionCommandRequest = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
+
+    this.writeToDevice(swVersionCommandRequest)
+
+    return this.swVersionResponse
+  }
+
+  checkSwVersion() {
+    return (this.socket.state == (<any>window).Socket.State.OPENED)
   }
 
   closeConnection() {
     this.socket.close();
-    console.log("connection closed");
+    console.log("about to close socket");
+    if (this.socket.state != (<any>window).Socket.State.OPENED) {
+      setTimeout (() => { alert('Connection closed') }, 600);
+    }
   }
 
   // Convert buffer to string
@@ -82,9 +132,53 @@ export class TCPServices {
     return buf;
   }
 
-  write() {
-    debugger;
-    this.socket.write(29); // this.socket.write(29);
+  /*
+  payload bla: OK
+main.js:847 tmp 1:  OK
+main.js:848 tmp 1 data:  undefined
+main.js:850 dato returned undefined
+main.js:851 tmp 2:  OK
+VM134:1 Hello from Javaaaaa
+main.js:842 {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
+main.js:845 payload bla: {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
+main.js:847 tmp 1:  {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
+main.js:848 tmp 1 data:  undefined
+main.js:850 dato returned undefined
+main.js:851 tmp 2:  {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
+
+
+Temperatura
+{"type":"DataReceived","data":[1,3,2,0,45,120,89],"socketKey":"58b170e4-506f-aced-4174-4f727deda4f4"}
+  */
+
+  writeToDevice(payload) {
+    this.socket.write(payload, this.dispatchEventOnSuccess, this.logOnError);
+        // // Request to read data
+    // const byteArrayInit = [0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x0b];
+    // const byteArrayReadSWVersion = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
+    // const byteArrayReadTemperature = [0x01, 0x03, 0x04, 0x00, 0x00, 0x01, 0x85, 0x3a];
+
+    // // Request to write data
+    // const byteArrayWriteTemperature45 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x2d, 0x23, 0x8d]; // 45
+
+    // /*
+    // After writing 45
+    //  {"type":"DataReceived","data":[1,-112,0,76,0],"socketKey":"ba4c2aac-d63a-cabf-f345-584965a2949d"}
+    // */
+
+    // const byteArrayWriteTemperature55 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x37,0xa2, 0x46]; // 55
+  }
+  
+  dispatchEventOnSuccess(payload) {
+    if (payload && payload !== "OK") {
+      (<any>window).Socket.dispatchEvent(JSON.parse(payload));
+    } else {
+      console.log("Received payload: " + payload);
+    }
+  }
+
+  logOnError(error){
+    console.log(error);
   }
 
   // Send packet
@@ -434,139 +528,139 @@ x; // => [1, 2, 3];
 }
 */
 
-  readDataFromBoard(
-    slave: number,
-    readCommand: number,
-    fromAddress: number,
-    toAddress: number,
-    numBitToRead: number
-  ) {
-    let dataSend: (string | number)[];
-    dataSend = [];
-    debugger;
+  // readDataFromBoard(
+  //   slave: number,
+  //   readCommand: number,
+  //   fromAddress: number,
+  //   toAddress: number,
+  //   numBitToRead: number
+  // ) {
+  //   let dataSend: (string | number)[];
+  //   dataSend = [slave, readCommand, fromAddress, toAddress, numBitToRead];
+  //   debugger;
 
-    if (slave > 9) {
-      dataSend[0] = this.uint16(this.prepend("0x", slave)).toString(); //QString().number(slave).prepend("0x").toUInt(nullptr,16);
-    } else {
-      dataSend.push("0x01"); // this.uint16(this.prepend("0x0", slave)).toString(); //QString().number(slave).prepend("0x0").toUInt(nullptr,16);
-    }
+  //   if (slave > 9) {
+  //     dataSend[0] = this.uint16(this.prepend("0x", slave)).toString(); //QString().number(slave).prepend("0x").toUInt(nullptr,16);
+  //   } else {
+  //     dataSend.push("0x01"); // this.uint16(this.prepend("0x0", slave)).toString(); //QString().number(slave).prepend("0x0").toUInt(nullptr,16);
+  //   }
 
-    if (readCommand > 9) {
-      dataSend[1] = this.uint16(this.prepend("0x", readCommand)).toString(); // QString().number(readCommand).prepend("0x").toUInt(nullptr,16);
-    } else {
-      dataSend[1] = "0x03"; // this.uint16(this.prepend("0x0", readCommand)).toString(); //QString().number(readCommand).prepend("0x0").toUInt(nullptr,16);
-    }
+  //   if (readCommand > 9) {
+  //     dataSend[1] = this.uint16(this.prepend("0x", readCommand)).toString(); // QString().number(readCommand).prepend("0x").toUInt(nullptr,16);
+  //   } else {
+  //     dataSend[1] = "0x03"; // this.uint16(this.prepend("0x0", readCommand)).toString(); //QString().number(readCommand).prepend("0x0").toUInt(nullptr,16);
+  //   }
 
-    //from address da qui
-    let fromAddressHEX = fromAddress.toString(16);
+  //   //from address da qui
+  //   let fromAddressHEX = fromAddress.toString(16);
 
-    if (fromAddress > 255) {
-      let firstWord, secondWord;
-      if (fromAddressHEX.length == 3) {
-        firstWord = "0x0" + fromAddressHEX[0];
-        secondWord = "0x" + fromAddressHEX[1] + fromAddressHEX[2];
-      } else if (fromAddressHEX.length == 4) {
-        firstWord = "0x" + fromAddressHEX[0] + fromAddressHEX[1];
-        secondWord = "0x" + fromAddressHEX[2] + fromAddressHEX[3];
-      } else {
-        firstWord = "0x00";
-        secondWord = "0x" + fromAddressHEX[0] + fromAddressHEX[1];
-      }
+  //   if (fromAddress > 255) {
+  //     let firstWord, secondWord;
+  //     if (fromAddressHEX.length == 3) {
+  //       firstWord = "0x0" + fromAddressHEX[0];
+  //       secondWord = "0x" + fromAddressHEX[1] + fromAddressHEX[2];
+  //     } else if (fromAddressHEX.length == 4) {
+  //       firstWord = "0x" + fromAddressHEX[0] + fromAddressHEX[1];
+  //       secondWord = "0x" + fromAddressHEX[2] + fromAddressHEX[3];
+  //     } else {
+  //       firstWord = "0x00";
+  //       secondWord = "0x" + fromAddressHEX[0] + fromAddressHEX[1];
+  //     }
 
-      //dataSend[2] = firstWord.toUInt(nullptr,0);
-      //dataSend[3] = secondWord.toUInt(nullptr,0);
-    } else {
-      let secondWord;
+  //     //dataSend[2] = firstWord.toUInt(nullptr,0);
+  //     //dataSend[3] = secondWord.toUInt(nullptr,0);
+  //   } else {
+  //     let secondWord;
 
-      if (fromAddressHEX.length < 2) {
-        secondWord = "0x0" + fromAddressHEX[0];
-      } else {
-        secondWord = "0x" + fromAddressHEX[0] + fromAddressHEX[1];
-      }
+  //     if (fromAddressHEX.length < 2) {
+  //       secondWord = "0x0" + fromAddressHEX[0];
+  //     } else {
+  //       secondWord = "0x" + fromAddressHEX[0] + fromAddressHEX[1];
+  //     }
 
-      dataSend[2] = 0x00;
-      dataSend[3] = secondWord; //.toUInt(nullptr,0);
-    }
+  //     dataSend[2] = 0x00;
+  //     dataSend[3] = secondWord; //.toUInt(nullptr,0);
+  //   }
 
-    //toAddress da qui
-    if (numBitToRead == 8) {
-      //se è impostato 8 bit devo dividere per due, di default è 16bit, ovvero il doppio
-      let tmp = toAddress;
-      tmp = this.chunkString(tmp, tmp.toString().length); //qCeil(tmp / 2);
-      toAddress = tmp; //static_cast<int>(tmp);
-    }
+  //   //toAddress da qui
+  //   if (numBitToRead == 8) {
+  //     //se è impostato 8 bit devo dividere per due, di default è 16bit, ovvero il doppio
+  //     let tmp = toAddress;
+  //     tmp = this.chunkString(tmp, tmp.toString().length); //qCeil(tmp / 2);
+  //     toAddress = tmp; //static_cast<int>(tmp);
+  //   }
 
-    let toAddressHEX = toAddress.toString(16);
-    //toAddressHEX.setNum(toAddress,16);
+  //   let toAddressHEX = toAddress.toString(16);
+  //   //toAddressHEX.setNum(toAddress,16);
 
-    if (toAddress > 255) {
-      let firstWord, secondWord;
-      if (toAddressHEX.length == 3) {
-        firstWord = "0x0" + toAddressHEX[0];
-        secondWord = "0x" + toAddressHEX[1] + toAddressHEX[2];
-      } else if (toAddressHEX.length == 4) {
-        firstWord = "0x" + toAddressHEX[0] + toAddressHEX[1];
-        secondWord = "0x" + toAddressHEX[2] + toAddressHEX[3];
-      } else {
-        firstWord = "0x00";
-        secondWord = "0x" + toAddressHEX[0] + toAddressHEX[1];
-      }
+  //   if (toAddress > 255) {
+  //     let firstWord, secondWord;
+  //     if (toAddressHEX.length == 3) {
+  //       firstWord = "0x0" + toAddressHEX[0];
+  //       secondWord = "0x" + toAddressHEX[1] + toAddressHEX[2];
+  //     } else if (toAddressHEX.length == 4) {
+  //       firstWord = "0x" + toAddressHEX[0] + toAddressHEX[1];
+  //       secondWord = "0x" + toAddressHEX[2] + toAddressHEX[3];
+  //     } else {
+  //       firstWord = "0x00";
+  //       secondWord = "0x" + toAddressHEX[0] + toAddressHEX[1];
+  //     }
 
-      dataSend[4] = firstWord; //.toUInt(nullptr,0);
-      dataSend[5] = secondWord; //.toUInt(nullptr,0);
-    } else {
-      let secondWord1;
+  //     dataSend[4] = firstWord; //.toUInt(nullptr,0);
+  //     dataSend[5] = secondWord; //.toUInt(nullptr,0);
+  //   } else {
+  //     let secondWord1;
 
-      if (toAddress <= 15) {
-        secondWord1 = "0x0" + toAddressHEX[0];
-      } else {
-        secondWord1 = "0x" + toAddressHEX[0] + toAddressHEX[1];
-      }
+  //     if (toAddress <= 15) {
+  //       secondWord1 = "0x0" + toAddressHEX[0];
+  //     } else {
+  //       secondWord1 = "0x" + toAddressHEX[0] + toAddressHEX[1];
+  //     }
 
-      dataSend[4] = "0x00";
-      dataSend[5] = secondWord1; //.toUInt(nullptr,0);
-    }
+  //     dataSend[4] = "0x00";
+  //     dataSend[5] = secondWord1; //.toUInt(nullptr,0);
+  //   }
 
-    //calcolo il crc checksum
-    let CRCReturned = this.Crc16(dataSend, dataSend.length); // CRC16(dataSend,dataSend.length());
-    //CRCReturned = htons(CRCReturned);
-    //QByteArray ritorno((char*)&CRCReturned, 2);
+  //   //calcolo il crc checksum
+  //   let CRCReturned = this.Crc16(dataSend, dataSend.length); // CRC16(dataSend,dataSend.length());
+  //   //CRCReturned = htons(CRCReturned);
+  //   //QByteArray ritorno((char*)&CRCReturned, 2);
 
-    //dataSend[6] = ritorno[1];
-    //dataSend[7] = ritorno[0];
+  //   //dataSend[6] = ritorno[1];
+  //   //dataSend[7] = ritorno[0];
 
-    //QByteArray ritornoFinal = getModBusRequest(dataSend);
-    debugger;
-    // this.sendPacket('192.168.1.1', 5555, dataSend)
+  //   //QByteArray ritornoFinal = getModBusRequest(dataSend);
+  //   debugger;
+  //   // this.sendPacket('192.168.1.1', 5555, dataSend)
 
-    this.socket.write(dataSend);
-    // (<any>window).Socket.write(dataSend);
+  //   this.socket.write(dataSend);
+  //   // (<any>window).Socket.write(dataSend);
 
-    //verifico il checksum che mi ritorna
-    // QByteArray checkRitorno;
-    // for(int i = 0; i < ritornoFinal.size(); i++){
-    //     if(i < ritornoFinal.size()-2)
-    //     {
-    //         checkRitorno.append(ritornoFinal[i]);
-    //     }
-    // }
+  //   //verifico il checksum che mi ritorna
+  //   // QByteArray checkRitorno;
+  //   // for(int i = 0; i < ritornoFinal.size(); i++){
+  //   //     if(i < ritornoFinal.size()-2)
+  //   //     {
+  //   //         checkRitorno.append(ritornoFinal[i]);
+  //   //     }
+  //   // }
 
-    // uint CRCReturnedCheck = CRC16(checkRitorno,checkRitorno.length());
-    // CRCReturnedCheck = htons(CRCReturnedCheck);
-    // QByteArray ritornoCRC((char*)&CRCReturnedCheck, 2);
-    // //fine verifica checksum di ritorno, se è corretto ritorno il dato se no torno vuoto
+  //   // uint CRCReturnedCheck = CRC16(checkRitorno,checkRitorno.length());
+  //   // CRCReturnedCheck = htons(CRCReturnedCheck);
+  //   // QByteArray ritornoCRC((char*)&CRCReturnedCheck, 2);
+  //   // //fine verifica checksum di ritorno, se è corretto ritorno il dato se no torno vuoto
 
-    // if(ritornoFinal.length() > 0)
-    // {
-    //     if((ritornoFinal[ritornoFinal.length()-2] == ritornoCRC[1]) && (ritornoFinal[ritorno.length()-1] == ritornoCRC[0])){
-    //         return ritornoFinal;
-    //     }
-    // }
-    // else
-    // {
-    //     ritornoFinal.clear();
-    // }
+  //   // if(ritornoFinal.length() > 0)
+  //   // {
+  //   //     if((ritornoFinal[ritornoFinal.length()-2] == ritornoCRC[1]) && (ritornoFinal[ritorno.length()-1] == ritornoCRC[0])){
+  //   //         return ritornoFinal;
+  //   //     }
+  //   // }
+  //   // else
+  //   // {
+  //   //     ritornoFinal.clear();
+  //   // }
 
-    // return ritornoFinal;
-  }
+  //   // return ritornoFinal;
+  // }
 }

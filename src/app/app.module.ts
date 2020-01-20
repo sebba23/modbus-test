@@ -13,6 +13,24 @@ import { IonicStorageModule } from "@ionic/storage";
 import { HomeComponent } from "./home/home.component";
 import { TCPServices } from "./socket-service";
 import { HttpModule } from "@angular/http";
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+// Material components
+import { 
+  MatButtonModule, 
+  MatSidenavModule, 
+  MatListModule,
+  MatMenuModule,
+  MatCardModule,
+  MatDialogModule,
+  MatFormFieldModule,
+  MatInputModule,
+  MatToolbarModule,
+  MatSnackBarModule,
+  MatProgressBarModule,
+  MatCheckboxModule,
+  MatSliderModule
+ } from '@angular/material';
+import { HttpClientModule } from "@angular/common/http";
 
 @NgModule({
   declarations: [AppComponent, HomeComponent],
@@ -22,7 +40,23 @@ import { HttpModule } from "@angular/http";
     IonicModule.forRoot(),
     AppRoutingModule,
     HttpModule,
-    IonicStorageModule.forRoot()
+    IonicStorageModule.forRoot(),
+    AppRoutingModule,
+    BrowserAnimationsModule,
+    MatSliderModule,
+    MatButtonModule,
+    MatSidenavModule,
+    MatListModule,
+    MatMenuModule,
+    MatCardModule,
+    HttpClientModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatToolbarModule,
+    MatSnackBarModule,
+    MatProgressBarModule,
+    MatCheckboxModule
   ],
   providers: [
     StatusBar,
