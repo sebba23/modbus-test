@@ -1,5 +1,6 @@
 import { Component, OnInit, Injectable } from "@angular/core";
 import { TCPServices } from "../socket-service";
+import { callbackify } from "util";
 
 @Injectable({
   providedIn: "root"
@@ -34,11 +35,26 @@ export class HomeComponent implements OnInit {
 
   swVersionRequest() {
     console.log("software version request");
-    this.socketService.getSwVersion()
+    this.socketService.getSwVersion().then((data: any) => {
+      let versionString = this.socketService.arrayBuffer2str(data.data.slice(3, data.data.length-2))
+      console.log(`Software version is ${versionString.substring(0, 2).split('').join(".")} ${this.transformSwVersion(versionString.substring(2, versionString.length))}`)
+    })
+  }
+
+  transformSwVersion(str) {
+    return str.replace(/(\d\d)(\d\d)(\d\d)/, "$1/$2/$3")
   }
 
   getTemperature() {
-    this.socketService.getTemperature()
+    let temperature
+    this.socketService.getTemperature().then((data: any) => {
+      if (data.data[3] !== 0) {
+        temperature = data.data.slice(3, data.data.length-2)
+      } else {
+        temperature = data.data.slice(4, data.data.length-2)
+      }
+      console.log(`Temperature is ${temperature}`)
+    })
   }
 
   setTemperature45() {

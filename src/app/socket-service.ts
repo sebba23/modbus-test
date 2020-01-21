@@ -34,7 +34,6 @@ export class TCPServices {
 
     this.socket.onData = function(data) {
       console.log("#onData: " + data);
-      this.swVersionResponse = data
     };
 
     this.socket.onError = function(errorMessage) {
@@ -78,14 +77,13 @@ export class TCPServices {
   getSwVersion() {
     console.log('about to send command to get sw version')
     const swVersionCommandRequest = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
-    this.writeToDevice(swVersionCommandRequest)
-    // return this.swVersionResponse
+    return this.writeToDevice(swVersionCommandRequest)
   }
 
   getTemperature() {
     console.log('about to send command to get the temperature')
     const byteArrayReadTemperature = [0x01, 0x03, 0x04, 0x00, 0x00, 0x01, 0x85, 0x3a];
-    this.writeToDevice(byteArrayReadTemperature)
+    return this.writeToDevice(byteArrayReadTemperature)
   }
 
   setTemperature45() {
@@ -137,7 +135,6 @@ export class TCPServices {
   // Convert buffer to string
   // Call this when we get response from device
   arrayBuffer2str(buf) {
-    debugger;
     var str = "";
     var ui8 = new Uint8Array(buf);
     for (var i = 0; i < ui8.length; i++) {
@@ -159,21 +156,34 @@ export class TCPServices {
   }
 
   writeToDevice(payload) {
-    this.socket.write(payload, this.dispatchEventOnSuccess, this.logOnError);
+    return new Promise((resolve, reject) => {
+      this.socket.write(payload, (result) => {
+        if (result && result !== "OK") {
+          let data = JSON.parse(result);
+          (<any>window).Socket.dispatchEvent(data);
+          resolve(data)
+        } else {
+          console.log("Received payload: " + result);
+        }
+      }, (error) => {
+        console.log(error);
+        reject(error)
+      });
+    })
   }
   
-  // Method to tell js that an event was dispatched from native code
-  dispatchEventOnSuccess(payload) {
-    if (payload && payload !== "OK") {
-      (<any>window).Socket.dispatchEvent(JSON.parse(payload));
-    } else {
-      console.log("Received payload: " + payload);
-    }
-  }
+  // // Method to tell js that an event was dispatched from native code
+  // dispatchEventOnSuccess(payload) {
+  //   if (payload && payload !== "OK") {
+  //     (<any>window).Socket.dispatchEvent(JSON.parse(payload));
+  //   } else {
+  //     console.log("Received payload: " + payload);
+  //   }
+  // }
 
-  logOnError(error){
-    console.log(error);
-  }
+  // logOnError(error){
+  //   console.log(error);
+  // }
 
   uintToString(uintArray) {
     var encodedString = String.fromCharCode.apply(null, uintArray),
