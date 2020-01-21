@@ -21,7 +21,6 @@ export class TCPServices {
     this.socket.onData = function(data) {
       if (this.getSwRequestChanged) {
         console.log('print sw version')
-        this.swVersionRequestChanged(false)
         this.swVersionResponse = data
         console.log('sw versione response: ', this.swVersionResponse)
       } else {
@@ -52,14 +51,6 @@ export class TCPServices {
     );
   }
 
-  swVersionRequestChanged(value: boolean) {
-    this.swVersionRequest.next(value);
-  }
-
-  getSwRequestChanged() {
-    return this.swVersionRequest.getValue()
-  }
-
   // Method to open a socket/connection
   connect() {
     this.socket.open(
@@ -87,15 +78,38 @@ export class TCPServices {
     }
   }
 
+  // Request to read data
+  // const byteArrayInit = [0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x0b];
+  // const byteArrayReadSWVersion = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
+  // const byteArrayReadTemperature = [0x01, 0x03, 0x04, 0x00, 0x00, 0x01, 0x85, 0x3a];
+
+  // Request to write data
+  // const byteArrayWriteTemperature45 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x2d, 0x23, 0x8d]; // 45
+  // const byteArrayWriteTemperature55 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x37,0xa2, 0x46]; // 55
   getSwVersion() {
     console.log('about to send command to get sw version')
-    this.swVersionRequestChanged(true)
-    debugger
     const swVersionCommandRequest = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
 
     this.writeToDevice(swVersionCommandRequest)
+    // return this.swVersionResponse
+  }
 
-    return this.swVersionResponse
+  getTemperature() {
+    console.log('about to send command to get the temperature')
+    const byteArrayReadTemperature = [0x01, 0x03, 0x04, 0x00, 0x00, 0x01, 0x85, 0x3a];
+    this.writeToDevice(byteArrayReadTemperature)
+  }
+
+  setTemperature45() {
+    console.log('about to send command to set the temperature (45°)')
+    const byteArrayWriteTemperature45 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x2d, 0x23, 0x8d]; // 45
+    this.writeToDevice(byteArrayWriteTemperature45)
+  }
+
+  setTemperature55() {
+    console.log('about to send command to set the temperature (55°)')
+    const byteArrayWriteTemperature55 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x37,0xa2, 0x46]; // 55
+    this.writeToDevice(byteArrayWriteTemperature55)
   }
 
   checkSwVersion() {
@@ -111,6 +125,7 @@ export class TCPServices {
   }
 
   // Convert buffer to string
+  // Call this when we get response from device
   arrayBuffer2str(buf) {
     debugger;
     var str = "";
@@ -122,6 +137,7 @@ export class TCPServices {
   }
 
   // Convert string to buffer
+  // Call this to convert message before writing to the device
   str2arrayBuffer(str) {
     debugger;
     var buf = new ArrayBuffer(str.length);
@@ -132,41 +148,8 @@ export class TCPServices {
     return buf;
   }
 
-  /*
-  payload bla: OK
-main.js:847 tmp 1:  OK
-main.js:848 tmp 1 data:  undefined
-main.js:850 dato returned undefined
-main.js:851 tmp 2:  OK
-VM134:1 Hello from Javaaaaa
-main.js:842 {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
-main.js:845 payload bla: {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
-main.js:847 tmp 1:  {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
-main.js:848 tmp 1 data:  undefined
-main.js:850 dato returned undefined
-main.js:851 tmp 2:  {"type":"DataReceived","data":[1,3,8,52,48,48,54,49,49,49,57,-32,118],"socketKey":"67d638b4-2e01-69ca-e6a8-9acd8ab12fdf"}
-
-
-Temperatura
-{"type":"DataReceived","data":[1,3,2,0,45,120,89],"socketKey":"58b170e4-506f-aced-4174-4f727deda4f4"}
-  */
-
   writeToDevice(payload) {
     this.socket.write(payload, this.dispatchEventOnSuccess, this.logOnError);
-        // // Request to read data
-    // const byteArrayInit = [0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x0b];
-    // const byteArrayReadSWVersion = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
-    // const byteArrayReadTemperature = [0x01, 0x03, 0x04, 0x00, 0x00, 0x01, 0x85, 0x3a];
-
-    // // Request to write data
-    // const byteArrayWriteTemperature45 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x2d, 0x23, 0x8d]; // 45
-
-    // /*
-    // After writing 45
-    //  {"type":"DataReceived","data":[1,-112,0,76,0],"socketKey":"ba4c2aac-d63a-cabf-f345-584965a2949d"}
-    // */
-
-    // const byteArrayWriteTemperature55 = [0x01, 0x10, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x37,0xa2, 0x46]; // 55
   }
   
   dispatchEventOnSuccess(payload) {

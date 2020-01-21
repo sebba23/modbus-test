@@ -13,23 +13,23 @@ export class HomeComponent implements OnInit {
   
   swVersion: any;
 
-  constructor(private socket: TCPServices) {}
+  constructor(private socketService: TCPServices) {}
 
   ngOnInit() {}
 
   connect() {
     console.log("connecting to the device");
-    this.socket.connect();
+    this.socketService.connect();
   }
 
   killSocket() {
     console.log("closing connection");
-    this.socket.closeConnection();
+    this.socketService.closeConnection();
   }
 
   connectionTest() {
     console.log("test connection");
-    this.socket.testConnection();
+    this.socketService.testConnection();
     // this.socket.arrayBuffer2str(299);
     // this.socket.sendPacket("192.168.1.1", 5555, 1);
     // this.socket.writeToDevice();
@@ -49,8 +49,8 @@ export class HomeComponent implements OnInit {
     console.log("software version request");
 
     //debugger;
-    if (this.socket.checkSwVersion()) {
-      this.swVersion = this.socket.getSwVersion();
+    if (this.socketService.checkSwVersion()) {
+      this.swVersion = this.socketService.getSwVersion();
       // this.swVersion = this.socket.swVersionResponse
       // debugger
       // setTimeout(() => {
@@ -66,5 +66,17 @@ export class HomeComponent implements OnInit {
 
     // will it work?
     // this.swVersion = this.socket.swVersionResponse
+  }
+
+  getTemperature() {
+    this.socketService.getTemperature()
+  }
+
+  setTemperature45() {
+    this.socketService.setTemperature45()
+  }
+
+  setTemperature55() {
+    this.socketService.setTemperature55()
   }
 }
