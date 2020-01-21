@@ -48,4 +48,12 @@ export class HomeComponent implements OnInit {
   setTemperature55() {
     this.socketService.setTemperature55()
   }
+
+  getMatricola() {
+    this.socketService.getMatricola()
+  }
+
+  getSerialNumber() {
+    this.socketService.getSerialNumber()
+  }
 }
