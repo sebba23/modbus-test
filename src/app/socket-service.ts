@@ -19,14 +19,8 @@ export class TCPServices {
     (<any>window).globalSocket = this.socket;
 
     this.socket.onData = function(data) {
-      if (this.getSwRequestChanged) {
-        console.log('print sw version')
-        this.swVersionResponse = data
-        console.log('sw versione response: ', this.swVersionResponse)
-      } else {
-        console.log("#onData: " + data);
-        this.swVersionResponse = data
-      }
+      console.log("#onData: " + data);
+      this.swVersionResponse = data
     };
 
     this.socket.onError = function(errorMessage) {
@@ -68,7 +62,6 @@ export class TCPServices {
   }
 
   testConnection() {
-    debugger;
     if (this.socket.state == (<any>window).Socket.State.OPENED) {
       console.log("Socket is opened");
       setTimeout (() => { alert('Connection successful') }, 900);
@@ -89,7 +82,6 @@ export class TCPServices {
   getSwVersion() {
     console.log('about to send command to get sw version')
     const swVersionCommandRequest = [0x01, 0x03, 0x00, 0x01, 0x00, 0x04, 0x15, 0xc9];
-
     this.writeToDevice(swVersionCommandRequest)
     // return this.swVersionResponse
   }
@@ -152,6 +144,7 @@ export class TCPServices {
     this.socket.write(payload, this.dispatchEventOnSuccess, this.logOnError);
   }
   
+  // Method to tell js that an event was dispatched from native code
   dispatchEventOnSuccess(payload) {
     if (payload && payload !== "OK") {
       (<any>window).Socket.dispatchEvent(JSON.parse(payload));
@@ -162,40 +155,6 @@ export class TCPServices {
 
   logOnError(error){
     console.log(error);
-  }
-
-  // Send packet
-  sendPacket(ipAddr, ipPort, data) {
-    debugger;
-    var delay = 5000; /// 5 seconds timeout
-    //(<any>window).chrome.socket.tcp.create({}, createInfo => {
-    this.socket.create({}, createInfo => {
-      //callback function with createInfo as the parameter
-      var _socketTcpId = createInfo.socketId;
-      //(<any>window).chrome.sockets.tcp.connect(
-      this.socket.connect(_socketTcpId, ipAddr, ipPort, result => {
-        //callback function with result as the parameter
-        if (result === 0) {
-          var data2send = this.str2arrayBuffer(data);
-          /// connection ok, send the packet
-          //(<any>window).chrome.sockets.tcp.send(_socketTcpId, data2send);
-          this.socket.write(_socketTcpId, data2send);
-        }
-      });
-      //   (<any>window).chrome.sockets.tcp
-      this.socket.onReceive.addListener(info => {
-        //callback function with info as the parameter
-        /// recived, then close connection
-        // (<any>window).chrome.sockets.tcp
-        this.socket.close(_socketTcpId);
-        var data = this.arrayBuffer2str(info.data);
-      });
-      /// set the timeout
-      setTimeout(function() {
-        // (<any>window).chrome.sockets.tcp
-        this.socket.close(_socketTcpId);
-      }, delay);
-    });
   }
 
   uintToString(uintArray) {
@@ -236,6 +195,40 @@ export class TCPServices {
       }
     }
     return crc;
+  }
+
+  // Send packet
+  sendPacket(ipAddr, ipPort, data) {
+    debugger;
+    var delay = 5000; /// 5 seconds timeout
+    //(<any>window).chrome.socket.tcp.create({}, createInfo => {
+    this.socket.create({}, createInfo => {
+      //callback function with createInfo as the parameter
+      var _socketTcpId = createInfo.socketId;
+      //(<any>window).chrome.sockets.tcp.connect(
+      this.socket.connect(_socketTcpId, ipAddr, ipPort, result => {
+        //callback function with result as the parameter
+        if (result === 0) {
+          var data2send = this.str2arrayBuffer(data);
+          /// connection ok, send the packet
+          //(<any>window).chrome.sockets.tcp.send(_socketTcpId, data2send);
+          this.socket.write(_socketTcpId, data2send);
+        }
+      });
+      //   (<any>window).chrome.sockets.tcp
+      this.socket.onReceive.addListener(info => {
+        //callback function with info as the parameter
+        /// recived, then close connection
+        // (<any>window).chrome.sockets.tcp
+        this.socket.close(_socketTcpId);
+        var data = this.arrayBuffer2str(info.data);
+      });
+      /// set the timeout
+      setTimeout(function() {
+        // (<any>window).chrome.sockets.tcp
+        this.socket.close(_socketTcpId);
+      }, delay);
+    });
   }
 
   /*
