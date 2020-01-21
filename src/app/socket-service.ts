@@ -36,7 +36,7 @@ export class TCPServices {
       5555,
       function() {
         // invoked after successful opening of socket
-        console.log("connected to ", (<any>window).globalSocket); //this.socket);
+        console.log("connected to ", (<any>window).globalSocket);
       },
       function(errorMessage) {
         // invoked after unsuccessful opening of socket
@@ -59,16 +59,6 @@ export class TCPServices {
         console.log("error message ", errorMessage);
       }
     );
-  }
-
-  testConnection() {
-    if (this.socket.state == (<any>window).Socket.State.OPENED) {
-      console.log("Socket is opened");
-      setTimeout (() => { alert('Connection successful') }, 900);
-    } else {
-      console.log("Socked is closed");
-      setTimeout (() => { alert('Cannot connect to the device') }, 900);
-    }
   }
 
   // Request to read data
@@ -106,6 +96,16 @@ export class TCPServices {
 
   checkSwVersion() {
     return (this.socket.state == (<any>window).Socket.State.OPENED)
+  }
+
+  testConnection() {
+    if (this.socket.state == (<any>window).Socket.State.OPENED) {
+      console.log("Socket is opened");
+      setTimeout (() => { alert('Connection successful') }, 900);
+    } else {
+      console.log("Socked is closed");
+      setTimeout (() => { alert('Cannot connect to the device') }, 900);
+    }
   }
 
   closeConnection() {
