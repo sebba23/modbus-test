@@ -16,9 +16,25 @@
 
       <button mat-raised-button (click)="setTemperature55()" style="width: 50%; margin-top: 20px;">Set Temperature 55</button>
 
-      <button mat-raised-button (click)="getMatricola()" style="width: 50%; margin-top: 20px;">Get Matricola</button>
+      <div class="container-matricola" style="margin-top: 20px;">
+        <div>
+          <button mat-raised-button (click)="getMatricola()" style="width: 50%; margin-top: 20px;">Get Matricola</button>
+        </div>
 
-      <button mat-raised-button (click)="getSerialNumber()" style="width: 50%; margin-top: 20px;">Get Serial Number</button>
+        <div>
+          <mat-card style="font-size: 0.8em; width: 190px; font-weight: bold;">Matricola: <label >{{matricola}} </label> </mat-card>
+        </div>
+      </div>
+
+      <div class="container-serial-number" style="margin-top: 20px;">
+        <div>
+          <button mat-raised-button (click)="getSerialNumber()" style="width: 50%; margin-top: 20px;">Get Serial Number</button>
+        </div>
+
+        <div>
+          <mat-card style="font-size: 0.8em; width: 190px; font-weight: bold;">Serial Number: <label >{{serialNumber}} </label> </mat-card>
+        </div>
+      </div>
 
       <div class="container-sw-version" style="margin-top: 20px;">
         <div>

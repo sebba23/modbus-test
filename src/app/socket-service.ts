@@ -99,13 +99,13 @@ export class TCPServices {
   getMatricola() {
     console.log('about to send command to get the matricola')
     const byteArrayMatricola = [0x01, 0x03, 0x03, 0xf2, 0x00, 0x04, 0xe5, 0xbe]
-    this.writeToDevice(byteArrayMatricola)
+    return this.writeToDevice(byteArrayMatricola)
   }
 
   getSerialNumber() {
     console.log('about to send command to get serial number')
     const byteArraySerialNumber = [0x01, 0x03, 0x03, 0xf6, 0x00, 0x02, 0x24, 0x7d]
-    this.writeToDevice(byteArraySerialNumber)
+    return this.writeToDevice(byteArraySerialNumber)
   }
 
   checkSwVersion() {
@@ -139,6 +139,17 @@ export class TCPServices {
       str = str + String.fromCharCode(ui8[i]);
     }
     return str;
+  }
+
+  // Convert buffer to string
+  // Call this when we get response from device
+  arrayBuffer2strSerialNumber(buf) {
+    var str = "";
+    var ui8 = new Uint8Array(buf);
+    for (var i = 0; i < ui8.length; i++) {
+      str = str + ui8[i].toString(16);
+    }
+    return parseInt(str, 16);
   }
 
   // Convert string to buffer

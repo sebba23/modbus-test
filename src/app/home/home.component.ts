@@ -13,6 +13,8 @@ import { callbackify } from "util";
 export class HomeComponent implements OnInit {
   
   versionString: any;
+  matricola: any;
+  serialNumber: any;
 
   constructor(private socketService: TCPServices) {}
 
@@ -67,10 +69,16 @@ export class HomeComponent implements OnInit {
   }
 
   getMatricola() {
-    this.socketService.getMatricola()
+    this.socketService.getMatricola().then((data: any) => {
+      this.matricola = this.socketService.arrayBuffer2str(data.data.slice(3, data.data.length-2))
+      console.log(`Matricola is ${this.matricola}`)
+    })
   }
 
   getSerialNumber() {
-    this.socketService.getSerialNumber()
+    this.socketService.getSerialNumber().then((data: any) => {
+      this.serialNumber = this.socketService.arrayBuffer2strSerialNumber(data.data.slice(3, data.data.length-2))
+      console.log(`Serial Number is ${this.serialNumber}`)
+    })
   }
 }
