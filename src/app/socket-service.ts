@@ -21,8 +21,6 @@ import { BehaviorSubject } from "rxjs";
 
 export class TCPServices {
   socket;
-  swVersionResponse: any;
-  swVersionRequest: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false)
 
   constructor() {
     console.log("Hello TCPServices Provider");

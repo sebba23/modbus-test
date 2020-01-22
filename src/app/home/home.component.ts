@@ -12,7 +12,7 @@ import { callbackify } from "util";
 })
 export class HomeComponent implements OnInit {
   
-  swVersion: any;
+  versionString: any;
 
   constructor(private socketService: TCPServices) {}
 
@@ -36,8 +36,9 @@ export class HomeComponent implements OnInit {
   swVersionRequest() {
     console.log("software version request");
     this.socketService.getSwVersion().then((data: any) => {
-      let versionString = this.socketService.arrayBuffer2str(data.data.slice(3, data.data.length-2))
-      console.log(`Software version is ${versionString.substring(0, 2).split('').join(".")} ${this.transformSwVersion(versionString.substring(2, versionString.length))}`)
+      this.versionString = this.socketService.arrayBuffer2str(data.data.slice(3, data.data.length-2))
+      this.versionString = this.versionString.substring(0, 2).split('').join(".") + ' ' + this.transformSwVersion(this.versionString.substring(2, this.versionString.length))
+      console.log(`Software version is ${this.versionString}`)
     })
   }
 
